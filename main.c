@@ -27,9 +27,10 @@ void matrix_send_raw(uint16_t data){
     GPIOA_BSRR |= (1 << (16+4));
     SPI1_DR = data;
     while (!(SPI1_SR & SPI_SR_TXE) || (SPI1_SR & SPI_SR_BSY)); // wait for transfer to end
+//    delay(50); // WTF
     GPIOA_BSRR |= (1 << 4);
 
-    delay(100000);// TODO: remove this
+    delay(100);// TODO: remove this
 }
 
 void matrix_send(uint16_t addr, uint16_t data){
@@ -69,6 +70,7 @@ int main(){
     RCC_AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
     GPIOC_MODER |= GPIO_MODE_OUTPUT << (13*2);
 
+    delay(10000);
     matrix_init();
 
 
@@ -77,7 +79,7 @@ int main(){
 //        delay(DELAY);
 //        GPIOC_ODR &= ~(1 << 13);
 //        delay(DELAY);
-//        matrix_draw_image(nsu);
-        matrix_send_raw(0b1010000000000001);
+        matrix_draw_image(nsu);
+//        matrix_send_raw(0b1010000000000001);
     }
 }
