@@ -102,7 +102,7 @@ int main() {
     init_clock();
     init_gpio();
     matrix_init();
-//    init_uart();
+    init_uart();
 
 
     int i = 0;
