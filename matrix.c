@@ -57,9 +57,9 @@ uint8_t font[][3] = {
 
         },
         {
+                0b00011101,
+                0b00010101,
                 0b00011111,
-                0b00010100,
-                0b00011100,
         },
         {
                 0b00011111,
@@ -85,11 +85,17 @@ volatile int matrix_send_len;
 
 void spi1_isr() {
     if (SPI1_SR & SPI_SR_TXE) {
+//        GPIOA_BSRR |= (1 << 4); // high
+        GPIOA_BSRR |= (1 << (16+4)); // low
+
         if (matrix_send_step < matrix_send_len) {
             SPI1_DR = matrix_send_buffer[matrix_send_step++];
         } else {
             NVIC_ICER(NVIC_SPI1_IRQ / 32) = 1 << (NVIC_SPI1_IRQ % 32);
         }
+    } else if (SPI1_SR & SPI_SR_RXNE) {
+        GPIOA_BSRR |= (1 << 4); // high
+        volatile int discard = SPI1_DR;
     }
 }
 
@@ -115,8 +121,11 @@ void print_num(int n) {
 
 void matrix_init() {
     SPI1_CR1 |= SPI_CR1_BIDIMODE_2LINE_UNIDIR | SPI_CR1_BIDIOE | SPI_CR1_DFF_16BIT | SPI_CR1_MSTR |
-                SPI_CR1_BAUDRATE_FPCLK_DIV_256; // WE GO SLOW
-    SPI1_CR2 |= SPI_CR2_SSOE | SPI_CR2_FRF_TI_MODE | SPI_CR2_TXEIE;
+                SPI_CR1_BAUDRATE_FPCLK_DIV_64; // WE GO SLOW
+    SPI1_CR2 |= SPI_CR2_SSOE | SPI_CR2_TXEIE | SPI_CR2_RXNEIE;
+
+//    SPI1_CR1 |= SPI_CR1_CPHA | SPI_CR1_CPOL;
+
     SPI1_CR1 |= SPI_CR1_SPE;
 
     matrix_send_buffer_async(matrix_init_list, 4);
