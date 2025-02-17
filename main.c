@@ -7,7 +7,7 @@
 
 #include "main.h"
 
-#define DELAY 800000
+#define DELAY 8000000
 
 void delay(int d) {
     volatile int c = 0;
@@ -31,8 +31,8 @@ void init_gpio(){
     GPIOC_MODER |= GPIO_MODE_OUTPUT << (13 * 2); // LED output
 
     // matrix spi
-    GPIOA_MODER |= (0b10 << 4 * 2) | (0b10 << 5 * 2) | (0b10 << 7 * 2);
-    GPIOA_AFRL |= (5 << 4 * 4) | (5 << 5 * 4) | (5 << 7 * 4);
+    GPIOA_MODER |= (0b01 << 4 * 2) | (0b10 << 5 * 2) | (0b10 << 7 * 2);
+    GPIOA_AFRL |=     (5 << 5 * 4) | (5 << 7 * 4);
 
     // uart
     GPIOA_MODER |= (0b10 << 9 * 2) | (0b10 << 10 * 2);
@@ -101,8 +101,8 @@ int init_uart(){
 int main() {
     init_clock();
     init_gpio();
-//    matrix_init();
-    init_uart();
+    matrix_init();
+//    init_uart();
 
 
     int i = 0;
