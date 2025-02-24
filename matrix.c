@@ -5,11 +5,14 @@
 
 #include "main.h"
 
+
+
 uint16_t matrix_init_list[] = {
         0x0900,
         0x0c01,
         0x0b07,
         0x0a01,
+        0x0000, // dummy byte to please the gods of crappy SPI
 };
 
 uint16_t matrix_data_list[] = {
@@ -21,80 +24,10 @@ uint16_t matrix_data_list[] = {
         0x0600,
         0x0700,
         0x0800,
+        0x0000, // dummy byte to please the gods of crappy SPI
 };
 
-uint8_t font[][3] = {
-        {
-                0b00011111,
-                0b00010001,
-                0b00011111,
-        },
-        {
-                0b00011111,
-                0b00000010,
-                0b00000000,
-        },
-        {
 
-                0b00010111,
-                0b00010101,
-                0b00011101,
-        },
-        {
-                0b00011111,
-                0b00010101,
-                0b00010001,
-        },
-        {
-                0b00011111,
-                0b00000100,
-                0b00000111,
-        },
-        {
-                0b00011101,
-                0b00010101,
-                0b00010111,
-
-        },
-        {
-                0b00011101,
-                0b00010101,
-                0b00011111,
-        },
-        {
-                0b00011111,
-                0b00000001,
-                0b00000001,
-        },
-        {
-                0b00011111,
-                0b00010101,
-                0b00011111,
-        },
-        {
-                0b00011111,
-                0b00000101,
-                0b00000111,
-        },
-};
-
-uint8_t character_E[] = {
-        0b00011111,
-        0b00010101,
-        0b00010101,
-};
-
-uint8_t character_T[] = {
-        0b00000011,
-        0b00011111,
-        0b00000001,
-};
-
-uint8_t character_D[] = {
-        0b00011111,
-        0b00010100,
-        0b00011100,
-};
 
 volatile int matrix_send_step = 0;
 volatile uint16_t *volatile matrix_send_buffer;
@@ -125,7 +58,7 @@ void matrix_send_buffer_async(uint16_t *data, int len) {
 
 void matrix_set_character(const uint8_t *data, int place){
     for (int i = 0; i < 3; i++) {
-        int y = place * 4 + i;
+        int y = place * 4 + i+1;
         matrix_data_list[y] = ((y + 1) << 8) | data[2 - i];
     }
 }
@@ -135,7 +68,7 @@ void matrix_set_digit(int d, int place) {
 }
 
 void matrix_flush(){
-    matrix_send_buffer_async(matrix_data_list, 8);
+    matrix_send_buffer_async(matrix_data_list, 9);
 }
 
 void print_num(int n, int bar) {
@@ -157,7 +90,7 @@ void matrix_init() {
 
     SPI1_CR1 |= SPI_CR1_SPE;
 
-    matrix_send_buffer_async(matrix_init_list, 4);
+    matrix_send_buffer_async(matrix_init_list, 5);
     // Блокируемся до конца инициализации
-    while (matrix_send_step != 4);
+    while (matrix_send_step != 5);
 }

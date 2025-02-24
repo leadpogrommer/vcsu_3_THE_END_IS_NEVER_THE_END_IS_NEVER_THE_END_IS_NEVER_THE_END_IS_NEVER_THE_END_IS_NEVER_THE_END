@@ -1,6 +1,6 @@
 DEVICE          = stm32f411ceu6
 OPENCM3_DIR     = thirdparty/libopencm3
-OBJS            += main.o matrix.o thermometer.o
+OBJS            += main.o matrix.o thermometer.o font.o
 CFLAGS 			+= -nostartfiles -fno-common -g -Og
 LDFLAGS 		+= -nostartfiles -fno-common
 
