@@ -35,10 +35,10 @@ void init_gpio(){
     GPIOA_AFRL |=     (5 << 5 * 4) | (5 << 7 * 4);
 
     // uart
-    GPIOA_MODER |= (0b10 << 9 * 2) | (0b10 << 10 * 2);
-    GPIOA_AFRH |= (7 << 1 * 4) | (7 << 2 * 4);
+    GPIOA_MODER |= (0b10 << 9 * 2); // PA9 - Alternative function - tx
+    GPIOA_AFRH |= (7 << 1 * 4);
     GPIOA_OTYPER |= GPIO_OTYPE_OD << (9);
-    GPIOA_PUPDR |= GPIO_PUPD_PULLUP << (10*2); // TODO: uncomment before connecting
+//    GPIOA_PUPDR |= GPIO_PUPD_PULLUP << (1*2); // TODO: uncomment before connecting
 }
 
 void uart_set_baudrate(int rate){
@@ -73,16 +73,7 @@ int init_uart(){
     USART1_CR1 |= USART_CR1_UE;
     uart_set_baudrate(115200);
     USART1_CR1 |= USART_CR1_TE | USART_CR1_RE;
-
-
-//    while (!(USART1_SR & USART_SR_TC)); // wait
-//    USART1_DR = 'h';
-//    while (!(USART1_SR & USART_SR_TC)); // wait
-//    USART1_DR = 'e';
-//    while (!(USART1_SR & USART_SR_TC)); // wait
-//    USART1_DR = 'l';
-//    while (!(USART1_SR & USART_SR_TC)); // wait
-//    USART1_DR = 'p';
+    USART1_CR3 |= USART_CR3_HDSEL;
 
     // 1-Wire test
     volatile uint8_t data = uart_do_one_wire_blocking(9600, 0xf0); // reset
