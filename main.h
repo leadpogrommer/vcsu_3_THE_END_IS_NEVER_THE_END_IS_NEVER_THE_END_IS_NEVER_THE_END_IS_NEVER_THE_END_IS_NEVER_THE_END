@@ -9,3 +9,7 @@ void matrix_init();
 extern uint8_t character_D[3];
 extern uint8_t character_E[3];
 extern uint8_t character_T[3];
+
+
+// thermometer
+void init_thermometer();
