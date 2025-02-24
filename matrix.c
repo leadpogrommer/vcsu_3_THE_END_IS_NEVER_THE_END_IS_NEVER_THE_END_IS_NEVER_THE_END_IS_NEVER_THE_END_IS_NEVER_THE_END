@@ -113,9 +113,13 @@ void matrix_set_digit(int d, int place) {
     }
 }
 
-void print_num(int n) {
+void print_num(int n, int bar) {
     matrix_set_digit(n / 10, 0);
     matrix_set_digit(n % 10, 1);
+    for(int i = 0; i < 8; i++){
+        matrix_data_list[i] = (matrix_data_list[i] & 0b1111111101111111) | ((bar >= i) ? 0b10000000 : 0);
+    }
+
     matrix_send_buffer_async(matrix_data_list, 8);
 }
 

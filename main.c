@@ -68,26 +68,52 @@ uint8_t onewire_byte(uint8_t data){
     return res;
 }
 
+// 0 = ok, 1 = error
+int onewire_cmd(uint8_t *txbuf, int tx_len, uint8_t *rxbuf, int rx_len){
+    uint8_t resp = uart_do_one_wire_blocking(9600, 0xf0); // reset pulse
+    if (resp == 0xf0){
+        return 1; // no device
+    }
+    for(int i = 0; i < tx_len; i++){
+        onewire_byte(txbuf[i]);
+    }
+    for(int i = 0; i < rx_len; i++){
+        rxbuf[i] = onewire_byte(0xff);
+    }
+    return 0;
+}
 
-int init_uart(){
+uint16_t init_uart(){
     USART1_CR1 |= USART_CR1_UE;
     uart_set_baudrate(115200);
     USART1_CR1 |= USART_CR1_TE | USART_CR1_RE;
     USART1_CR3 |= USART_CR3_HDSEL;
 
-    // 1-Wire test
-    volatile uint8_t data = uart_do_one_wire_blocking(9600, 0xf0); // reset
-
-    onewire_byte(0x33);
-
-    uint8_t rom_contents[8];
-
-    for(int i = 0; i < 8; i++){
-        rom_contents[i] = onewire_byte(0xff);
-    }
-
-    return data;
+    return 0;
 }
+
+int16_t read_temp(){
+    // 1-Wire test
+    uint8_t romcmd = 0x33;
+    uint8_t convtcmd[] = {0xcc, 0x44};
+    uint8_t read_mem_cmd[] = {0xcc, 0xbe};
+
+    uint8_t rom_data[8];
+    uint8_t ram_data[9];
+
+    // TODO: 11 bit
+    onewire_cmd(&romcmd, 1, rom_data, 8); // read rom
+    onewire_cmd(convtcmd, 2, 0, 0); // convert temperature
+
+    delay(DELAY*3);
+
+    onewire_cmd(read_mem_cmd, 2, ram_data, 9);
+
+    return ((int16_t *)ram_data)[0];
+}
+
+
+
 
 int main() {
     init_clock();
@@ -103,9 +129,11 @@ int main() {
 //        delay(DELAY);
 //        GPIOC_ODR &= ~(1 << 13);
 //        delay(DELAY);
-        print_num(i);
-        i = (i + 1) % 100;
-        delay(DELAY);
+//        print_num(i);
+//        i = (i + 1) % 100;
+//        delay(DELAY);
+        int16_t temp = read_temp();
+        print_num(temp/16, (temp / 2) & 0b111);
 //        matrix_send_raw(0b1010000000000001);
     }
 }
