@@ -17,8 +17,8 @@ uint16_t matrix_data_list[] = {
         0x0200,
         0x0300,
         0x0400,
-        0x050a,
-        0x060b,
+        0x0500,
+        0x0600,
         0x0700,
         0x0800,
 };
@@ -78,6 +78,23 @@ uint8_t font[][3] = {
         },
 };
 
+uint8_t character_E[] = {
+        0b00011111,
+        0b00010101,
+        0b00010101,
+};
+
+uint8_t character_T[] = {
+        0b00000011,
+        0b00011111,
+        0b00000001,
+};
+
+uint8_t character_D[] = {
+        0b00011111,
+        0b00010100,
+        0b00011100,
+};
 
 volatile int matrix_send_step = 0;
 volatile uint16_t *volatile matrix_send_buffer;
@@ -103,14 +120,22 @@ void matrix_send_buffer_async(uint16_t *data, int len) {
     matrix_send_step = 0;
     matrix_send_buffer = data;
     matrix_send_len = len;
-    NVIC_ISER(NVIC_SPI1_IRQ / 32) = 1 << (NVIC_SPI1_IRQ % 32);
+    NVIC_ISER(NVIC_SPI1_IRQ / 32) = 1 << (NVIC_SPI1_IRQ % 32); // interrupt will trigger since TXE is 1
+}
+
+void matrix_set_character(const uint8_t *data, int place){
+    for (int i = 0; i < 3; i++) {
+        int y = place * 4 + i;
+        matrix_data_list[y] = ((y + 1) << 8) | data[2 - i];
+    }
 }
 
 void matrix_set_digit(int d, int place) {
-    for (int i = 0; i < 3; i++) {
-        int y = place * 4 + i;
-        matrix_data_list[y] = ((y + 1) << 8) | font[d][2 - i];
-    }
+    matrix_set_character(font[d], place);
+}
+
+void matrix_flush(){
+    matrix_send_buffer_async(matrix_data_list, 8);
 }
 
 void print_num(int n, int bar) {
@@ -120,7 +145,7 @@ void print_num(int n, int bar) {
         matrix_data_list[i] = (matrix_data_list[i] & 0b1111111101111111) | ((bar >= i) ? 0b10000000 : 0);
     }
 
-    matrix_send_buffer_async(matrix_data_list, 8);
+    matrix_flush();
 }
 
 void matrix_init() {
